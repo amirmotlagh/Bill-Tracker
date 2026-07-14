@@ -106,7 +106,11 @@ object Loc {
         "variable_est" to "Est. %s%s",
         "enter_paid_amount" to "Enter Paid Amount",
         "record_payment" to "Record Payment",
-        "payment_prompt_variable" to "This bill is a variable credit/expense. Please enter the exact amount paid for this period:"
+        "payment_prompt_variable" to "This bill is a variable credit/expense. Please enter the exact amount paid for this period:",
+        "settings_theme" to "App Theme",
+        "theme_system" to "System Default",
+        "theme_light" to "Light Mode",
+        "theme_dark" to "Dark Mode"
     )
 
     private val fa = mapOf(
@@ -212,7 +216,11 @@ object Loc {
         "variable_est" to "تخمینی %s%s",
         "enter_paid_amount" to "ورود مبلغ پرداخت شده",
         "record_payment" to "ثبت پرداخت",
-        "payment_prompt_variable" to "این مورد دارای مبلغ متغیر/اعتباری است. لطفا مبلغ دقیق پرداخت شده برای این دوره را وارد کنید:"
+        "payment_prompt_variable" to "این مورد دارای مبلغ متغیر/اعتباری است. لطفا مبلغ دقیق پرداخت شده برای این دوره را وارد کنید:",
+        "settings_theme" to "پوسته برنامه",
+        "theme_system" to "پیش‌فرض سیستم",
+        "theme_light" to "حالت روشن",
+        "theme_dark" to "حالت تاریک"
     )
 
     fun t(key: String, lang: String): String {

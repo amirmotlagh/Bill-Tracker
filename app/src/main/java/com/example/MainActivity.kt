@@ -33,6 +33,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import android.Manifest
 import android.os.Build
 import android.content.pm.PackageManager
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
@@ -41,12 +42,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            MyApplicationTheme {
-                // Initialize VM using the application context factory
-                val appViewModel: BillViewModel = viewModel(
-                    factory = BillViewModelFactory(application)
-                )
+            // Initialize VM using the application context factory
+            val appViewModel: BillViewModel = viewModel(
+                factory = BillViewModelFactory(application)
+            )
 
+            val themeMode by appViewModel.themeMode.collectAsState()
+            val useDarkTheme = when (themeMode) {
+                "dark" -> true
+                "light" -> false
+                else -> isSystemInDarkTheme()
+            }
+
+            MyApplicationTheme(darkTheme = useDarkTheme) {
                 var selectedTab by remember { mutableIntStateOf(0) }
 
                 val selectedCurrency by appViewModel.selectedCurrency.collectAsState()
@@ -341,7 +349,7 @@ class MainActivity : ComponentActivity() {
                                                     onClick = { calExpanded = true },
                                                     modifier = Modifier.fillMaxWidth()
                                                 ) {
-                                                    Text(if (calendarMode == "Jalali") Loc.t("jalali", appLanguage) else Loc.t("gregorian", appLanguage), fontWeight = FontWeight.Medium)
+                                                     Text(if (calendarMode == "Jalali") Loc.t("jalali", appLanguage) else Loc.t("gregorian", appLanguage), fontWeight = FontWeight.Medium)
                                                 }
                                                 DropdownMenu(
                                                     expanded = calExpanded,
@@ -359,6 +367,58 @@ class MainActivity : ComponentActivity() {
                                                         onClick = {
                                                             appViewModel.setCalendarMode("Jalali")
                                                             calExpanded = false
+                                                        }
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f))
+
+                                        // 2.5. Theme Mode Picker dropdown
+                                        var themeExpanded by remember { mutableStateOf(false) }
+                                        Column(modifier = Modifier.fillMaxWidth()) {
+                                            Text(
+                                                text = Loc.t("settings_theme", appLanguage),
+                                                fontWeight = FontWeight.SemiBold,
+                                                style = MaterialTheme.typography.bodyMedium
+                                            )
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            Box(modifier = Modifier.fillMaxWidth()) {
+                                                OutlinedButton(
+                                                    onClick = { themeExpanded = true },
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    val label = when (themeMode) {
+                                                        "dark" -> Loc.t("theme_dark", appLanguage)
+                                                        "light" -> Loc.t("theme_light", appLanguage)
+                                                        else -> Loc.t("theme_system", appLanguage)
+                                                    }
+                                                    Text(label, fontWeight = FontWeight.Medium)
+                                                }
+                                                DropdownMenu(
+                                                    expanded = themeExpanded,
+                                                    onDismissRequest = { themeExpanded = false }
+                                                ) {
+                                                    DropdownMenuItem(
+                                                        text = { Text(Loc.t("theme_system", appLanguage)) },
+                                                        onClick = {
+                                                            appViewModel.setThemeMode("system")
+                                                            themeExpanded = false
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(Loc.t("theme_light", appLanguage)) },
+                                                        onClick = {
+                                                            appViewModel.setThemeMode("light")
+                                                            themeExpanded = false
+                                                        }
+                                                    )
+                                                    DropdownMenuItem(
+                                                        text = { Text(Loc.t("theme_dark", appLanguage)) },
+                                                        onClick = {
+                                                            appViewModel.setThemeMode("dark")
+                                                            themeExpanded = false
                                                         }
                                                     )
                                                 }

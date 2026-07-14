@@ -48,6 +48,10 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
     private val _notifyMinute = MutableStateFlow(sharedPreferences.getInt("notify_minute", 0))
     val notifyMinute: StateFlow<Int> = _notifyMinute.asStateFlow()
 
+    // Theme preference ("system", "dark", "light")
+    private val _themeMode = MutableStateFlow(sharedPreferences.getString("theme_mode", "system") ?: "system")
+    val themeMode: StateFlow<String> = _themeMode.asStateFlow()
+
     init {
         val database = AppDatabase.getDatabase(application)
         repository = BillRepository(database.billDao())
@@ -104,6 +108,13 @@ class BillViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _selectedCurrency.value = currency
             sharedPreferences.edit().putString("currency", currency).apply()
+        }
+    }
+
+    fun setThemeMode(mode: String) {
+        viewModelScope.launch {
+            _themeMode.value = mode
+            sharedPreferences.edit().putString("theme_mode", mode).apply()
         }
     }
 

@@ -19,8 +19,7 @@ jobs:
         run: |
           echo "PWD=$(pwd)"
           ls -la
-          echo "Top-level files:"
-          find . -maxdepth 2 -type f | sort
+          find . -maxdepth 2 -type f | sort | head -300
 
       - name: Validate Gradle wrapper files
         run: |
@@ -29,16 +28,7 @@ jobs:
           [ -f "./gradlew.bat" ] || { echo "Missing ./gradlew.bat"; missing=1; }
           [ -f "./gradle/wrapper/gradle-wrapper.properties" ] || { echo "Missing gradle/wrapper/gradle-wrapper.properties"; missing=1; }
           [ -f "./gradle/wrapper/gradle-wrapper.jar" ] || { echo "Missing gradle/wrapper/gradle-wrapper.jar"; missing=1; }
-
-          if [ "$missing" -eq 1 ]; then
-            echo ""
-            echo "Gradle wrapper is missing. Add wrapper files to repo:"
-            echo "  gradlew"
-            echo "  gradlew.bat"
-            echo "  gradle/wrapper/gradle-wrapper.properties"
-            echo "  gradle/wrapper/gradle-wrapper.jar"
-            exit 1
-          fi
+          [ "$missing" -eq 0 ] || exit 1
 
       - name: Ensure gradlew executable
         run: chmod +x ./gradlew
@@ -62,22 +52,28 @@ jobs:
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
 
-      - name: Decode Keystore
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > my-release-key.jks
-
-      - name: Build Release APK
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+      - name: Build Release APK if signing secrets exist
         env:
-          KEYSTORE_PATH: ${{ github.workspace }}/my-release-key.jks
-          STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: ./gradlew --no-daemon assembleRelease
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_PASSWORD" ]; then
+            echo "Release signing secrets not set. Skipping release build."
+            exit 0
+          fi
 
-      - name: Upload Release APK
-        if: ${{ secrets.KEYSTORE_BASE64 != '' }}
+          echo "$KEYSTORE_BASE64" | base64 --decode > my-release-key.jks
+
+          export KEYSTORE_PATH="$GITHUB_WORKSPACE/my-release-key.jks"
+          export STORE_PASSWORD="$KEYSTORE_PASSWORD"
+          export KEY_PASSWORD="$KEY_PASSWORD"
+
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Upload Release APK (if built)
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: app/build/outputs/apk/release/app-release.apk
-          if-no-files-found: error
+          if-no-files-found: ignore

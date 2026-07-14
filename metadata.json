@@ -1,0 +1,6 @@
+{
+  "name": "Bill Tracker",
+  "description": "Track monthly payments, due dates, loans, bank accounts, and visualize spending trends with a custom calendar view.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
